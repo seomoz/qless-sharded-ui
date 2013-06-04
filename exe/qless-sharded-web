@@ -9,12 +9,12 @@ rescue LoadError
 end
 
 require 'server'
-server = Qless::ShardedServer.new
-
-server.add_instance(
-  'foo-0', Qless::Client.new(:url => 'redis://localhost:6379/0'), 'foo-0/')
-server.add_instance(
-  'foo-1', Qless::Client.new(:url => 'redis://localhost:6379/1'), 'foo-1/')
+server = Qless::ShardedServer.new([
+  Qless::ShardedClient.new(
+    'foo-0', Qless::Client.new(:url => 'redis://localhost:6379/0'), 'foo-0/'),
+  Qless::ShardedClient.new(
+    'foo-1', Qless::Client.new(:url => 'redis://localhost:6380/0'), 'foo-1/')
+])
 
 Vegas::Runner.new(server, 'qless-sharded-web', {
   :before_run => lambda {|v|

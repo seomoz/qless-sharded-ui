@@ -4,6 +4,10 @@
 	SEOmoz Blue: #4d87e2;
  */
 
+.accordion-group {
+	border: 0 solid black;
+}
+
 .queue-name {
 	font-size: 25px;
 	font-weight: bold;

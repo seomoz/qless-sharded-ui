@@ -26,13 +26,9 @@ module Qless
     # I'm not sure what this option is -- I'll look it up later
     # set :static, true
 
-    def initialize()
-      @clients = []
+    def initialize(clients)
+      @clients = clients
       super
-    end
-
-    def add_instance(name, client, path)
-      @clients.push(ShardedClient.new(name, client, path))
     end
 
     helpers do
@@ -90,28 +86,142 @@ module Qless
       end
 
       def queues
+        # This will return an array with information about the various queues
+        # we have as well as the number of jobs each worker has
+        #
+        # [{
+        #    :name => 'testing',
+        #    :clients => [{
+        #         :name => 'foo-1',
+        #         :path => '/foo-1'
+        #         :counts => ...
+        #    }, ...],
+        #    # The total number of job counts
+        #    :counts => {
+        #         :stalled => ...,
+        #         :waiting => ...,
+        #         # The number of clients that have that queue paused
+        #         :paused  => 2
+        #    }
+        # }, ...]
         results = Hash.new
         @clients.each do |client|
-          results[client.name] = client.client.queues.counts
-          results[client.name]['path'] = client.path
+          counts = client.client.queues.counts
+          counts.each do |obj|
+            if results[obj['name']].nil? then
+              results[obj['name']] = {
+                :name => obj['name'],
+                :clients => [],
+                :counts => {
+                  :paused => 0,
+                  :stalled => 0,
+                  :waiting => 0,
+                  :running => 0,
+                  :depends => 0,
+                  :recurring => 0,
+                  :scheduled => 0,
+                }
+              }
+            end
+
+            results[obj['name']][:clients].push({
+              :name => client.name,
+              :path => client.path,
+              :counts => obj
+            })
+
+            [:stalled, :waiting, :running, :depends, :recurring,
+              :scheduled].each do |kind|
+              results[obj['name']][:counts][kind] += obj[kind.to_s]
+            end
+            if obj['paused'] then
+              results[obj['name']][:counts][:paused] += 1
+            end
+          end
         end
-        results
+        results.values.sort_by { |k| k[:name] }
       end
 
       def workers
+        # [{
+        #    :name => 'worker',
+        #    :clients => [{
+        #         :name => 'foo-1',
+        #         :path => '/foo-1'
+        #         :counts => {
+        #             :jobs => ...,
+        #             :stalled => ...,
+        #         }
+        #    }, ...],
+        #    # The total number of job counts
+        #    :counts => {
+        #        :jobs => ...,
+        #        :stalled => ...
+        #    }
+        # }, ...]
         results = Hash.new
         @clients.each do |client|
-          results[client.name] = client.client.workers.counts
-          results[client.name]['path'] = client.path
+          counts = client.client.workers.counts
+          counts.each do |obj|
+            if results[obj['name']].nil? then
+              results[obj['name']] = {
+                :name => obj['name'],
+                :clients => [],
+                :counts => {
+                  :jobs => 0,
+                  :stalled => 0
+                }
+              }
+            end
+
+            results[obj['name']][:clients].push({
+              :name => client.name,
+              :path => client.path,
+              :counts => {
+                :jobs => obj['jobs'],
+                :stalled => obj['stalled']
+              }
+            })
+
+            results[obj['name']][:counts][:jobs   ] += obj['jobs']
+            results[obj['name']][:counts][:stalled] += obj['stalled']
+          end
         end
         results
       end
 
       def failed
+        # Will return stats like this
+        #
+        # [{
+        #    :group => 'foo',
+        #    :clients => [{
+        #         :name => 'foo-1',
+        #         :path => '/foo-1'
+        #         :count => ...
+        #    }, ...],
+        #    # The total number of job counts
+        #    :count => ...
+        # }, ...]
         results = Hash.new
         @clients.each do |client|
-          results[client.name] = client.client.jobs.failed
-          results[client.name]['path'] = client.path
+          counts = client.client.jobs.failed
+          counts.each do |key, count|
+            if results[key].nil? then
+              results[key] = {
+                :name => key,
+                :clients => [],
+                :count => 0
+              }
+            end
+
+            results[key][:clients].push({
+              :name => client.name,
+              :path => client.path,
+              :count => count
+            })
+            results[key][:count] += count
+          end
         end
         results
       end
@@ -141,8 +251,10 @@ module Qless
       # Expects JSON blob: {'queue': <queue>}
       r = JSON.parse(request.body.read)
       if r['queue']
-        @client.queues[r['queue']].pause()
-        return json({'queue' => 'paused'})
+        return json({
+          'queue' => 'paused',
+          'clients' => @clients.map { |c| c.client.queues[r['queue']].pause }
+        })
       else
         raise 'No queue provided'
       end
@@ -152,8 +264,10 @@ module Qless
       # Expects JSON blob: {'queue': <queue>}
       r = JSON.parse(request.body.read)
       if r['queue']
-        @client.queues[r['queue']].unpause()
-        return json({'queue' => 'unpaused'})
+        return json({
+          'queue' => 'unpaused',
+          'clients' => @clients.map { |c| c.client.queues[r['queue']].unpause }
+        })
       else
         raise 'No queue provided'
       end
