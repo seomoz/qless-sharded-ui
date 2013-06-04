@@ -1,0 +1,112 @@
+<% if queues.empty? %>
+  <div class="page-header">
+    <h1>No Queues <small>I wish I had some queues :-/</small></h1>
+  </div>
+<% else %>
+  <div class="page-header">
+    <h1>Queues <small>And their job counts</small></h1>
+  </div>
+
+  <% queues.each do |queue| %>
+  <div class="row">
+    <div class="span4">
+      <h3>
+      <% if queue['paused'] %>
+          <button
+            id="<%= queue['name'] %>-pause"
+            title="Unpause"
+            class="btn btn-success"
+            onclick="unpause('<%= queue['name'] %>')"><i class="icon-play"></i>
+          </button>
+        <% else %>
+          <button
+            id="<%= queue['name'] %>-pause"
+            title="Pause"
+            class="btn btn-warning"
+            onclick="pause('<%= queue['name'] %>')"><i class="icon-pause"></i>
+          </button>
+        <% end %>
+        <a href="<%= u "/queues/#{queue['name']}" %>"><%= queue['name'] %></a>
+      </h3>
+    </div>
+    <div class="span8">
+      <h3> |
+        <%= queue['running']   %> /
+        <%= queue['waiting']   %> /
+        <%= queue['scheduled'] %> /
+        <%= queue['stalled']   %> /
+        <%= queue['depends']   %> /
+        <%= queue['recurring'] %> <small>(running / waiting / scheduled / stalled / depends / recurring)</small>
+      </h3>
+    </div>
+  </div>
+  <% end %>
+<% end %>
+
+<% if failed.empty? %>
+  <div class="page-header">
+    <h1>No Failed Jobs <small>Clean as a whistle</small></h1>
+  </div>
+<% else %>
+  <div class="page-header">
+    <h1>Failed Jobs <small>D'oh!</small></h1>
+  </div>
+  <div class="l-sidebyside failed-job">
+    <div class="min-col-size">
+      <% failed.sort_by { |t, count| -count }.each do |t, count| %>
+      <div class="row">
+        <h3><a href="<%= u "/failed/#{t}" %>"><%= t %></a></h3>
+      </div>
+      <% end %>
+    </div>
+    <div>
+      <% failed.sort_by { |t, count| -count }.each do |t, count| %>
+      <div class="row">
+        <h3>| <%= count %> <small>Jobs</small></h3>
+      </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% if tracked['jobs'].empty? %>
+  <div class="page-header">
+    <h1>No Tracked Jobs <small>These aren't the droids you're looking for</small></h1>
+  </div>
+<% else %>
+  <div class="page-header">
+    <h1>Tracked Jobs <small>These <i>are</i> the droids you're looking for</small></h1>
+  </div>
+  <% counts = Hash.new; tracked['jobs'].each { |job| counts[job.state] ||= 0; counts[job.state] += 1 } %>
+  <% counts.sort_by { |state, count| - count }.each do |state, count| %>
+  <div class="row">
+    <div class="span4">
+      <h3><a href="<%= u "/track##{state}" %>"><%= state %></a></h3>
+    </div>
+    <div class="span8">
+      <h3>| <%= count %> <small>Jobs</small></h3>
+    </div>
+  </div>
+  <% end %>
+<% end %>
+
+<% if workers.empty? %>
+  <div class="page-header">
+    <h1>No Workers <small>Nobody's doin' nothin'!</small></h1>
+  </div>
+<% else %>
+  <div class="page-header">
+    <h1>Current Workers <small>And their job counts</small></h1>
+  </div>
+
+  <% workers.each do |worker| %>
+  <div class="row">
+    <div class="span4">
+      <h3><a href="<%= u "/workers/#{worker['name']}" %>"><%= worker['name'] %></a></h3>
+    </div>
+    <div class="span8">
+      <h3>| <%= worker['jobs'] %> / <%= worker['stalled'] %> <small>Running / Stalled</small></h3>
+    </div>
+  </div>
+  <% end %>
+<% end %>
