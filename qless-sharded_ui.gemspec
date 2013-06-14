@@ -2,19 +2,17 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
-  s.name        = "qless-sharded-ui"
+  s.name        = "qless-sharded_ui"
   s.version     = 0.1
   s.authors     = ["Dan Lecocq"]
   s.email       = ["dan@seomoz.org"]
-  s.homepage    = "http://github.com/seomoz/qless"
+  s.homepage    = "http://github.com/seomoz/qless-sharded-ui"
   s.summary     = %q{A UI for Sharded Qless Installations}
-
-  s.rubyforge_project = "qless-sharded-ui"
 
   s.files         = %w(README.md Rakefile)
   s.files        += Dir.glob("lib/**/*.rb")
   s.files        += Dir.glob("bin/**/*")
-  s.files        += Dir.glob("lib/server/**/*")
+  s.files        += Dir.glob("lib/qless/sharded_ui/**/*")
   s.bindir        = 'exe'
   s.executables   = [ "qless-sharded-web" ]
 

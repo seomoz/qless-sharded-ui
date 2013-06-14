@@ -14,11 +14,11 @@ module Qless
     end
   end
 
-  class ShardedServer < Sinatra::Base
+  class ShardedUI < Sinatra::Base
     # Path-y-ness
     dir = File.dirname(File.expand_path(__FILE__))
-    set :views        , "#{dir}/server/views"
-    set :public_folder, "#{dir}/server/static"
+    set :views        , "#{dir}/sharded_ui/views"
+    set :public_folder, "#{dir}/sharded_ui/static"
 
     # For debugging purposes at least, I want this
     set :reload_templates, true
@@ -277,3 +277,4 @@ module Qless
     run! if app_file == $0
   end
 end
+

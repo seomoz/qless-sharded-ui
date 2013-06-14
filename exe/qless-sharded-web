@@ -8,8 +8,8 @@ rescue LoadError
   require 'vegas'
 end
 
-require 'server'
-server = Qless::ShardedServer.new([
+require 'qless/sharded_ui'
+server = Qless::ShardedUI.new([
   Qless::ShardedClient.new(
     'foo-0', Qless::Client.new(:url => 'redis://localhost:6379/0'), 'foo-0/'),
   Qless::ShardedClient.new(
