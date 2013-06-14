@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "qless-sharded-ui"
 
-  s.files         = %w(README.md Gemfile Rakefile HISTORY.md)
+  s.files         = %w(README.md Rakefile)
   s.files        += Dir.glob("lib/**/*.rb")
   s.files        += Dir.glob("bin/**/*")
   s.files        += Dir.glob("lib/server/**/*")
