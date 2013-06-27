@@ -97,7 +97,7 @@
         <div class="row">
           <div class="span4">
             <h3>
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#failed-<%= t %>-accordion" href="#failed-<%= t %>-accordion-body">
+              <a class="accordion-toggle" data-toggle="collapse" data-parent="#failed-<%= t %>-accordion" href="#failed-<%= t.gsub(':', '-') %>-accordion-body">
                 <%= t %></a>
             </h3>
           </div>
@@ -106,7 +106,7 @@
           </div>
         </div>
       </div>
-      <div class="accordion-body collapse" id="failed-<%= t %>-accordion-body">
+      <div class="accordion-body collapse" id="failed-<%= t.gsub(':', '-') %>-accordion-body">
         <div class="accordion-inner">
           <% obj[:clients].each do |client| %>
           <div class="row">
