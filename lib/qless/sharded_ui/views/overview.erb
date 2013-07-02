@@ -122,7 +122,6 @@
     <h1>Current Workers <small>And their job counts</small></h1>
   </div>
 
-  <% workers.sort_by { |name, obj| name }.each do |name, obj| %>
   <table class="table">
     <thead>
       <th>worker</th>
@@ -130,21 +129,22 @@
       <th>stalled</th>
     </thead>
     <tbody>
-      <tr class="main-row">
-        <td>
-          <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= name %></a>
-        </td>
-        <td><%= obj[:counts][:jobs] %></td>
-        <td><%= obj[:counts][:stalled] %></td>
-      </tr>
-      <% obj[:clients].each do |client| %>
-      <tr class="subrow" style="display:none;" data-row-group="<%= obj[:sluggified_name] %>">
-        <td><a href="<%= client[:path] %>/workers/<%= name %>"><%= client[:name] %></td>
-        <td><%= client[:counts][:jobs] %></td>
-        <td><%= client[:counts][:stalled] %></td>
-      </tr>
-      <% end %>
+    <% workers.sort_by { |name, obj| name }.each do |name, obj| %>
+    <tr class="main-row">
+      <td>
+        <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= name %></a>
+      </td>
+      <td><%= obj[:counts][:jobs] %></td>
+      <td><%= obj[:counts][:stalled] %></td>
+    </tr>
+    <% obj[:clients].each do |client| %>
+    <tr class="subrow" style="display:none;" data-row-group="<%= obj[:sluggified_name] %>">
+      <td><a href="<%= client[:path] %>/workers/<%= name %>"><%= client[:name] %></td>
+      <td><%= client[:counts][:jobs] %></td>
+      <td><%= client[:counts][:stalled] %></td>
+    </tr>
+    <% end %>
+  <% end %>
     </tbody>
   </table>
-  <% end %>
 <% end %>
