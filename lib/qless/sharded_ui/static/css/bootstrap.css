@@ -3837,7 +3837,7 @@ a.thumbnail:hover {
   background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
 }
 .accordion {
-  margin-bottom: 18px;
+  margin-bottom: 4px;
 }
 .accordion-group {
   margin-bottom: 2px;
@@ -3987,4 +3987,24 @@ a.thumbnail:hover {
 }
 .invisible {
   visibility: hidden;
+}
+
+.text-large {
+  font-size: 18px;
+}
+
+.main-row > td {
+  line-height: 30px;
+}
+
+.toggle-subrows {
+  cursor: pointer;
+}
+
+.button-column {
+  width:18px;
+}
+
+.queue-column {
+  min-width:300px;
 }

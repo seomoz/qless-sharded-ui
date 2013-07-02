@@ -85,6 +85,10 @@ module Qless
         end
       end
 
+      def sluggify(text)
+        text.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
+      end
+
       def queues
         # This will return an array with information about the various queues
         # we have as well as the number of jobs each worker has
@@ -111,6 +115,7 @@ module Qless
             if results[obj['name']].nil? then
               results[obj['name']] = {
                 :name => obj['name'],
+                :sluggified_name => sluggify(obj['name']),
                 :clients => [],
                 :counts => {
                   :paused => 0,
@@ -166,6 +171,7 @@ module Qless
             if results[obj['name']].nil? then
               results[obj['name']] = {
                 :name => obj['name'],
+                :sluggified_name => sluggify(obj['name']),
                 :clients => [],
                 :counts => {
                   :jobs => 0,
@@ -176,6 +182,7 @@ module Qless
 
             results[obj['name']][:clients].push({
               :name => client.name,
+              :sluggified_name => sluggify(client.name),
               :path => client.path,
               :counts => {
                 :jobs => obj['jobs'],
@@ -210,6 +217,7 @@ module Qless
             if results[key].nil? then
               results[key] = {
                 :name => key,
+                :sluggified_name => sluggify(key),
                 :clients => [],
                 :count => 0
               }
@@ -217,6 +225,7 @@ module Qless
 
             results[key][:clients].push({
               :name => client.name,
+              :sluggified_name => sluggify(client.name),
               :path => client.path,
               :count => count
             })

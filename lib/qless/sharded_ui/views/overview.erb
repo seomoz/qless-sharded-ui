@@ -7,79 +7,76 @@
     <h1>Queues <small>And their job counts</small></h1>
   </div>
 
-  <% queues.each do |queue| %>
-  <div class="accordion" id="<%= queue[:name] %>-accordion">
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <div class="row">
-          <div class="span4">
-            <h3>
-              <button
-                id="<%= queue[:name] %>-pause"
-                title="Unpause"
-                <% if queue[:counts][:paused] > 0 then %>
-                class="btn btn-success"
-                <% else %>
-                class="btn btn-success disabled"
-                disabled="disabled"
-                <% end %>
-                onclick="unpause('<%= queue[:name] %>')">
-                <i class="icon-play"></i>
-              </button>
-              <button
-                id="<%= queue[:name] %>-pause"
-                title="Pause"
-                <% if queue[:counts][:paused] < queue[:clients].length then %>
-                class="btn btn-warning"
-                <% else %>
-                class="btn btn-warning disabled"
-                disabled="disabled"
-                <% end %>
-                onclick="pause('<%= queue[:name] %>')">
-                <i class="icon-pause"></i>
-              </button>
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#<%= queue[:name] %>-accordion" href="#<%= queue[:name] %>-accordion-body">
-                <%= queue[:name] %></a>
-            </h3>
-          </div>
-          <div class="span7">
-            <h3> |
-              <%= queue[:counts][:running]   %> /
-              <%= queue[:counts][:waiting]   %> /
-              <%= queue[:counts][:scheduled] %> /
-              <%= queue[:counts][:stalled]   %> /
-              <%= queue[:counts][:depends]   %> /
-              <%= queue[:counts][:recurring] %> <small>(running / waiting / scheduled / stalled / depends / recurring)</small>
-            </h3>
-          </div>
-        </div>
-      </div>
-      <div class="accordion-body collapse" id="<%= queue[:name] %>-accordion-body">
-        <div class="accordion-inner">
-          <% queue[:clients].each do |client| %>
-          <div class="row">
-            <div class="span3 offset1">
-              <h3>
-                <a href="<%= client[:path] %>/queues/<%= queue[:name] %>"><%= client[:name] %></a>
-              </h3>
-            </div>
-            <div class="span7">
-              <h3> |
-                <%= client[:counts]['running']   %> /
-                <%= client[:counts]['waiting']   %> /
-                <%= client[:counts]['scheduled'] %> /
-                <%= client[:counts]['stalled']   %> /
-                <%= client[:counts]['depends']   %> /
-                <%= client[:counts]['recurring'] %> <small>(running / waiting / scheduled / stalled / depends / recurring)</small>
-              </h3>
-            </div>
-          </div>
+  <table class="table">
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>running</th>
+      <th>waiting</th>
+      <th>scheduled</th>
+      <th>stalled</th>
+      <th>depends</th>
+      <th>recurring</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% queues.each do |queue| %>
+    <tr class="main-row">
+      <td class="button-column">
+        <button id="<%= queue[:name] %>-pause" title="Unpause"
+          <% if queue[:counts][:paused] > 0 then %>
+          class="btn btn-success"
+          <% else %>
+          class="btn btn-success disabled" disabled="disabled"
           <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-  <% end %>
+          onclick="unpause('<%= queue[:name] %>')">
+          <i class="icon-play"></i>
+        </button>
+      </td>
+      <td class="button-column">
+        <button
+          id="<%= queue[:name] %>-pause"
+          title="Pause"
+          <% if queue[:counts][:paused] < queue[:clients].length then %>
+          class="btn btn-warning"
+          <% else %>
+          class="btn btn-warning disabled"
+          disabled="disabled"
+          <% end %>
+          onclick="pause('<%= queue[:name] %>')">
+          <i class="icon-pause"></i>
+        </button>
+      </td>
+      <td class="queue-column">
+        <a class="toggle-subrows text-large" data-row-group="<%= queue[:sluggified_name] %>"><%= queue[:name] %></a>
+      </td>
+      <td><%= queue[:counts][:running]   %></td>
+      <td><%= queue[:counts][:waiting]   %></td>
+      <td><%= queue[:counts][:scheduled] %></td>
+      <td><%= queue[:counts][:stalled]   %></td>
+      <td><%= queue[:counts][:depends]   %></td>
+      <td><%= queue[:counts][:recurring] %></td>
+    </tr>
+
+    <% queue[:clients].each do |client| %>
+    <tr class="sub-row" style="display:none;" data-row-group="<%= queue[:sluggified_name] %>">
+      <td></td>
+      <td></td>
+      <td><a href="<%= client[:path] %>/queues/<%= queue[:name] %>"><%= client[:name] %></a></td>
+      <td><%= client[:counts]['running']   %></td>
+      <td><%= client[:counts]['waiting']   %></td>
+      <td><%= client[:counts]['scheduled'] %></td>
+      <td><%= client[:counts]['stalled']   %></td>
+      <td><%= client[:counts]['depends']   %></td>
+      <td><%= client[:counts]['recurring'] %></td>
+    </tr>
+    <% end %>
+
+<% end %>
+  </tbody>
+</table>
 <% end %>
 
 <% if failed.empty? %>
@@ -90,41 +87,30 @@
   <div class="page-header">
     <h1>Failed Jobs <small>D'oh!</small></h1>
   </div>
-  <% failed.sort_by { |t, obj| -obj[:count] }.each do |t, obj| %>
-  <div class="accordion" id="failed-<%= t %>-accordion">
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <div class="row">
-          <div class="span4">
-            <h3>
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#failed-<%= t %>-accordion" href="#failed-<%= t.gsub(':', '-') %>-accordion-body">
-                <%= t %></a>
-            </h3>
-          </div>
-          <div class="span8">
-            <h3>| <%= obj[:count] %> <small>Jobs</small></h3>
-          </div>
-        </div>
-      </div>
-      <div class="accordion-body collapse" id="failed-<%= t.gsub(':', '-') %>-accordion-body">
-        <div class="accordion-inner">
-          <% obj[:clients].each do |client| %>
-          <div class="row">
-            <div class="span3 offset1">
-              <h3>
-                <a href="<%= client[:path] %>/failed/<%= t %>"><%= client[:name] %></a>
-              </h3>
-            </div>
-            <div class="span7">
-              <h3>| <%= client[:count] %> <small>Jobs</small></h3>
-            </div>
-          </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
-  <% end %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>error</th>
+        <th>count</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% failed.sort_by { |t, obj| -obj[:count] }.each do |t, obj| %>
+        <tr class="main-row">
+          <td>
+            <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= t %></a>
+          </td>
+          <td><%= obj[:count] %></td>
+        </tr>
+        <% obj[:clients].each do |client| %>
+        <tr class="sub-row" style="display:none;" data-row-group="<%= obj[:sluggified_name] %>">
+          <td><a href="<%= client[:path] %>/failed/<%= t %>"><%= client[:sluggified_name] %></a></td>
+          <td><%= client[:count] %></td>
+        </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
 <% end %>
 
 <% if workers.empty? %>
@@ -137,35 +123,28 @@
   </div>
 
   <% workers.sort_by { |name, obj| name }.each do |name, obj| %>
-  <div class="accordion" id="worker-<%= name %>-accordion">
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <div class="row">
-          <div class="span4">
-            <h3>
-              <a class="accordion-toggle" data-toggle="collapse" data-parent="#worker-<%= name %>-accordion" href="#worker-<%= sanitize_attr(name) %>-accordion-body"><%= name %></a></h3>
-          </div>
-          <div class="span8">
-            <h3>| <%= obj[:counts][:jobs] %> / <%= obj[:counts][:stalled] %> <small>Running / Stalled</small></h3>
-          </div>
-        </div>
-      </div>
-      <div class="accordion-body collapse" id="worker-<%= sanitize_attr(name) %>-accordion-body">
-        <div class="accordion-inner">
-          <% obj[:clients].each do |client| %>
-          <div class="row">
-            <div class="span3 offset1">
-              <h3><a href="<%= client[:path] %>/workers/<%= name %>"><%= client[:name] %></a>
-              </h3>
-            </div>
-            <div class="span7">
-              <h3>| <%= client[:counts][:jobs] %> / <%= client[:counts][:stalled] %> <small>Running / Stalled</small></h3>
-            </div>
-          </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  </div>
+  <table class="table">
+    <thead>
+      <th>worker</th>
+      <th>running</th>
+      <th>stalled</th>
+    </thead>
+    <tbody>
+      <tr class="main-row">
+        <td>
+          <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= name %></a>
+        </td>
+        <td><%= obj[:counts][:jobs] %></td>
+        <td><%= obj[:counts][:stalled] %></td>
+      </tr>
+      <% obj[:clients].each do |client| %>
+      <tr class="subrow" style="display:none;" data-row-group="<%= obj[:sluggified_name] %>">
+        <td><a href="<%= client[:path] %>/workers/<%= name %>"><%= client[:name] %></td>
+        <td><%= client[:counts][:jobs] %></td>
+        <td><%= client[:counts][:stalled] %></td>
+      </tr>
+      <% end %>
+    </tbody>
+  </table>
   <% end %>
 <% end %>
