@@ -98,13 +98,13 @@
       <% failed.sort_by { |t, obj| -obj[:count] }.each do |t, obj| %>
         <tr class="main-row">
           <td>
-            <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= t %></a>
+            <a class="toggle-subrows text-large" data-row-group="<%= obj[:sluggified_name] %>"><%= CGI::escapeHTML(t) %></a>
           </td>
           <td><%= obj[:count] %></td>
         </tr>
         <% obj[:clients].each do |client| %>
         <tr class="sub-row" style="display:none;" data-row-group="<%= obj[:sluggified_name] %>">
-          <td><a href="<%= client[:path] %>/failed/<%= t %>"><%= client[:sluggified_name] %></a></td>
+          <td><a href="<%= client[:path] %>/failed/<%= CGI::escape(t) %>"><%= client[:sluggified_name] %></a></td>
           <td><%= client[:count] %></td>
         </tr>
         <% end %>
