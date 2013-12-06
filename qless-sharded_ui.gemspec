@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "qless-sharded_ui"
-  s.version     = 0.1
+  s.version     = 0.2
   s.authors     = ["Dan Lecocq"]
   s.email       = ["dan@seomoz.org"]
   s.homepage    = "http://github.com/seomoz/qless-sharded-ui"
@@ -22,4 +22,3 @@ Gem::Specification.new do |s|
   s.add_dependency "qless"  , "~> 0.9"
   s.add_dependency "vegas"  , "~> 0.1"
 end
-

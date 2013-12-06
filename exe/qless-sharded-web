@@ -8,22 +8,49 @@ rescue LoadError
   require 'vegas'
 end
 
+require 'yaml'
 require 'qless/sharded_ui'
-server = Qless::ShardedUI.new([
-  Qless::ShardedClient.new(
-    'foo-0', Qless::Client.new(:url => 'redis://localhost:6379/0'), 'foo-0/'),
-  Qless::ShardedClient.new(
-    'foo-1', Qless::Client.new(:url => 'redis://localhost:6380/0'), 'foo-1/')
-])
 
-Vegas::Runner.new(server, 'qless-sharded-web', {
-  :before_run => lambda {|v|
-    path = (ENV['RESQUECONFIG'] || v.args.first)
-    load path.to_s.strip if path
-  }
-}) do |runner, opts, app|
-  # opts.on('-r redis-connection', "--redis redis-connection", "set the Redis connection string") {|redis_conf|
-  #   runner.logger.info "Using Redis connection '#{redis_conf}'"
-  #   Resque.redis = redis_conf
-  # }
+class LazyShardedUI
+  def call(env)
+    app.call(env)
+  end
+
+  def sharded_clients
+    @sharded_clients ||= []
+  end
+
+  def app
+    @app ||= Qless::ShardedUI.new(sharded_clients)
+  end
+end
+
+Vegas::Runner.new(LazyShardedUI.new, 'qless-sharded-web') do |runner, opts, app|
+  opts.on('--init file', 'create a config file for use with -c')  do |filename|
+    runner.logger.info "Writing to '#{filename}'"
+    File.open(filename, 'w') do |file|
+      file << <<'YAML'
+# Each entry becomes a Qless::ShardedClient, as so:
+# Qless::ShardedClient.new(NAME, Qless::Client.new(:url => URL), PATH)
+
+redis_instances:
+  - name: localhost
+    path: /
+    url: redis://localhost:6379/0
+YAML
+    end
+
+    exit 0
+  end
+
+  opts.on('-c file', '--config file', 'take redis urls from the file')  do |filename|
+    YAML.load_file(filename).fetch('redis_instances').each do |instance_hash|
+      name = instance_hash.fetch('name')
+      path = instance_hash.fetch('path')
+      url = instance_hash.fetch('url')
+
+      client = Qless::ShardedClient.new(name, Qless::Client.new(:url => url), path)
+      app.sharded_clients << client
+    end
+  end
 end
