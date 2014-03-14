@@ -122,6 +122,7 @@ module Qless
                   :stalled => 0,
                   :waiting => 0,
                   :running => 0,
+                  :throttled => 0,
                   :depends => 0,
                   :recurring => 0,
                   :scheduled => 0,
@@ -135,7 +136,7 @@ module Qless
               :counts => obj
             })
 
-            [:stalled, :waiting, :running, :depends, :recurring,
+            [:stalled, :waiting, :running, :throttled, :depends, :recurring,
               :scheduled].each do |kind|
               results[obj['name']][:counts][kind] += obj[kind.to_s]
             end
