@@ -15,6 +15,7 @@
       <th></th>
       <th>running</th>
       <th>waiting</th>
+      <th>throttled</th>
       <th>scheduled</th>
       <th>stalled</th>
       <th>depends</th>
@@ -54,6 +55,7 @@
       </td>
       <td><%= queue[:counts][:running]   %></td>
       <td><%= queue[:counts][:waiting]   %></td>
+      <td><%= queue[:counts][:throttled] %></td>
       <td><%= queue[:counts][:scheduled] %></td>
       <td><%= queue[:counts][:stalled]   %></td>
       <td><%= queue[:counts][:depends]   %></td>
@@ -67,6 +69,7 @@
       <td><a href="<%= client[:path] %>/queues/<%= queue[:name] %>"><%= client[:name] %></a></td>
       <td><%= client[:counts]['running']   %></td>
       <td><%= client[:counts]['waiting']   %></td>
+      <td><%= client[:counts]['throttled'] %></td>
       <td><%= client[:counts]['scheduled'] %></td>
       <td><%= client[:counts]['stalled']   %></td>
       <td><%= client[:counts]['depends']   %></td>
