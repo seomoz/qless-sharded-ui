@@ -63,7 +63,7 @@ module Qless
       def prev_page_url
         page_url -1
       end
-
+      
       def current_page
         @current_page ||= begin
           Integer(params[:page])
@@ -251,10 +251,55 @@ module Qless
       def sanitize_attr(attr)
         return attr.gsub(/[^a-zA-Z\:\_]/, '-')
       end
+
+      def strftime(t)
+        # From http://stackoverflow.com/questions/195740
+        diff_seconds = Time.now - t
+        formatted = t.strftime('%b %e, %Y %H:%M:%S')
+        case diff_seconds
+        when 0 .. 59
+          "#{formatted} (#{diff_seconds.to_i} seconds ago)"
+        when 60 ... 3600
+          "#{formatted} (#{(diff_seconds / 60).to_i} minutes ago)"
+        when 3600 ... 3600 * 24
+          "#{formatted} (#{(diff_seconds / 3600).to_i} hours ago)"
+        when (3600 * 24) ... (3600 * 24 * 30)
+          "#{formatted} (#{(diff_seconds / (3600 * 24)).to_i} days ago)"
+        else
+          formatted
+        end
+      end
     end
 
     get '/?' do
       erb :overview, :layout => true, :locals => { :title => "Overview" }
+    end
+
+    get '/tag/?' do
+      total = 0
+      tagged = @clients.inject({}) do |h, client|
+        qless_client = client.client
+        
+        # Only get the first 5 found
+        tagged_jobs = qless_client.jobs.tagged(params[:tag], 0, 5)
+        
+        total += tagged_jobs['total']
+        jobs = tagged_jobs['jobs'].map { |jid| qless_client.jobs[jid] }
+        
+        h[client.name] = {
+          total: tagged_jobs['total'],
+          jobs: jobs
+        }
+        
+        h
+      end
+
+      erb :tag, layout: true, locals: {
+        title: "Tag | #{params[:tag]}",
+        tag: params[:tag],
+        client_jobs: tagged,
+        total: total
+      }
     end
 
     post "/pause/?" do

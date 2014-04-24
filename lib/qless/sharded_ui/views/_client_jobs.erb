@@ -1,0 +1,17 @@
+<% if client_jobs.empty? %>
+  <div class="page-header">
+    <h1>No Shards <small>What kind of operation are you running here?</small></h1>
+  </div>
+<% else %>
+  <% client_jobs.each do |client_name, counts| %>
+    <% if counts[:total] > 0 %>
+      <h2 style="color:red">
+        <%= client_name %> | Showing <%= counts[:jobs].size %> of <%= counts[:total] %> | <a href=<%= "/qless/#{client_name}/tag?tag=#{tag}"%>>All...</h2>
+      </h2>
+
+      <% counts[:jobs].each do |job| %>
+        <%= erb :_job, :layout => false, :locals => { :job => job, :queues => queues } %>
+      <% end %>
+    <% end %>
+ <% end %>
+<% end %>
