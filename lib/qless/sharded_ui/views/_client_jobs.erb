@@ -10,7 +10,7 @@
       </h2>
 
       <% counts[:jobs].each do |job| %>
-        <%= erb :_job, :layout => false, :locals => { :job => job, :queues => queues } %>
+        <%= erb :_job, :layout => false, :locals => { :job => job, :queues => queues, :client_name => client_name } %>
       <% end %>
     <% end %>
  <% end %>
