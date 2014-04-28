@@ -1,6 +1,6 @@
 <div class="page-header">
-  <h2>Jobs tagged '<%= tag %>'</h2>
+  <h2>Jobs tagged '<%= tag %>' <small>Across all shards</small></h2>
 </div>
 
-<%= erb :_job_list, :locals => { :jobs => jobs, :queues => queues } %>
+<%= erb :_client_jobs, :locals => { :client_jobs => client_jobs, :tag => tag, :queues => queues } %>
 
