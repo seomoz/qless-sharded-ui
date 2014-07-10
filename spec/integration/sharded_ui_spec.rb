@@ -19,15 +19,15 @@ module Qless
 
     let(:q1) { client1.queues['testing'] }
     let(:q2) { client2.queues['testing'] }
-    
-    before(:all) do
+
+    before(:each) do
       Capybara.app = Qless::ShardedUI.new([
-        Qless::ShardedClient.new('qless01', clients[0], '/qless01'), 
+        Qless::ShardedClient.new('qless01', clients[0], '/qless01'),
         Qless::ShardedClient.new('qless02', clients[1], '/qless02')
       ])
     end
 
-    after(:all) do
+    after(:each) do
       Capybara.using_driver(:poltergeist) do
         Capybara.current_session.driver.quit
       end
@@ -36,17 +36,31 @@ module Qless
     it 'can search for tags across all shards', js: true do
       jid1 = q1.put(Qless::Job, {}, tags: ['foo'])
       jid2 = q2.put(Qless::Job, {}, tags: ['foo'])
-      
+
       visit '/'
       search = find('#tag-search')
       search.set('foo')
 
       page.execute_script("$('.navbar-search').submit()")
-      
+
       page.should have_content('qless01')
       page.should have_content('qless02')
       page.should have_content(jid1[0...9])
       page.should have_content(jid2[0...9])
+    end
+
+    it 'should ignore queues that have no work', js: true do
+      # Add a queue
+      jid1 = q1.put(Qless::Job, {}, tags: ['foo'])
+      # Drain the queue
+      q1.pop.complete
+
+      visit '/'
+
+      require 'pry'
+      binding.pry
+
+      search = find("h1", :text => "/No Queues.*/")
     end
   end
 end
