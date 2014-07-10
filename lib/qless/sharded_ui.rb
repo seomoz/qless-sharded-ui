@@ -28,7 +28,7 @@ module Qless
 
     attr_reader :options
 
-    def initialize(clients, options)
+    def initialize(clients, options = {})
       @clients = clients
       @options = options
       super()
@@ -149,10 +149,14 @@ module Qless
           end
         end
 
-        if options[:ignore_empty_queues]
-          states = %w(running waiting throttled scheduled stalled depends recurring)
-          results= results.reject do |queue|
-            total  = states.reduce(0) { |sum, state| sum += queue[state] }
+        ignore_empty = options[:ignore_empty_queues]
+        ignore_empty = params[:ignore_empty_queues] == "true" if params[:ignore_empty_queues].present?
+
+        if ignore_empty
+          states = %w(running waiting throttled scheduled stalled depends recurring).collect(&:to_sym)
+
+          results = results.reject do |queue, hash|
+            total = states.reduce(0) { |sum, state| sum += hash[:counts][state] }
             total == 0
           end
         end
