@@ -19,6 +19,15 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
-  s.add_dependency "qless"  , "~> 0.9"
-  s.add_dependency "vegas"  , "~> 0.1"
+  s.add_dependency 'redis'        , '>= 2.2' 
+  
+  s.add_dependency 'qless'        , '~> 0.9'
+  s.add_development_dependency 'sinatra'      , '~> 1.3.2'
+  s.add_development_dependency 'vegas'        , '~> 0.1'
+  s.add_development_dependency 'rspec'        , '~> 2.12'
+  s.add_development_dependency 'rspec-fire'   , '~> 1.1'
+  s.add_development_dependency 'capybara'     , '~> 1.1.2'
+  s.add_development_dependency 'poltergeist'  , '~> 1.0.0'
+  s.add_development_dependency 'launchy'      , '~> 2.1.0'
+  s.add_development_dependency 'pry'
 end

@@ -26,9 +26,12 @@ module Qless
     # I'm not sure what this option is -- I'll look it up later
     # set :static, true
 
-    def initialize(clients)
+    attr_reader :options
+
+    def initialize(clients, options = {})
       @clients = clients
-      super
+      @options = options
+      super()
     end
 
     helpers do
@@ -122,6 +125,7 @@ module Qless
                   :stalled => 0,
                   :waiting => 0,
                   :running => 0,
+                  :throttled => 0,
                   :depends => 0,
                   :recurring => 0,
                   :scheduled => 0,
@@ -135,13 +139,25 @@ module Qless
               :counts => obj
             })
 
-            [:stalled, :waiting, :running, :depends, :recurring,
+            [:stalled, :waiting, :running, :throttled, :depends, :recurring,
               :scheduled].each do |kind|
               results[obj['name']][:counts][kind] += obj[kind.to_s]
             end
             if obj['paused'] then
               results[obj['name']][:counts][:paused] += 1
             end
+          end
+        end
+
+        ignore_empty = options[:ignore_empty_queues]
+        ignore_empty = params[:ignore_empty_queues] == "true" if params[:ignore_empty_queues].present?
+
+        if ignore_empty
+          states = %w(running waiting throttled scheduled stalled depends recurring).collect(&:to_sym)
+
+          results = results.reject do |queue, hash|
+            total = states.reduce(0) { |sum, state| sum += hash[:counts][state] }
+            total == 0
           end
         end
         results.values.sort_by { |k| k[:name] }
@@ -250,10 +266,56 @@ module Qless
       def sanitize_attr(attr)
         return attr.gsub(/[^a-zA-Z\:\_]/, '-')
       end
+
+      def strftime(t)
+        # From http://stackoverflow.com/questions/195740
+        diff_seconds = Time.now - t
+        formatted = t.strftime('%b %e, %Y %H:%M:%S')
+        case diff_seconds
+        when 0 .. 59
+          "#{formatted} (#{diff_seconds.to_i} seconds ago)"
+        when 60 ... 3600
+          "#{formatted} (#{(diff_seconds / 60).to_i} minutes ago)"
+        when 3600 ... 3600 * 24
+          "#{formatted} (#{(diff_seconds / 3600).to_i} hours ago)"
+        when (3600 * 24) ... (3600 * 24 * 30)
+          "#{formatted} (#{(diff_seconds / (3600 * 24)).to_i} days ago)"
+        else
+          formatted
+        end
+      end
     end
 
     get '/?' do
+      @filter_empty = true
       erb :overview, :layout => true, :locals => { :title => "Overview" }
+    end
+
+    get '/tag/?' do
+      total = 0
+      tagged = @clients.inject({}) do |h, client|
+        qless_client = client.client
+
+        # Only get the first 5 found
+        tagged_jobs = qless_client.jobs.tagged(params[:tag], 0, 5)
+
+        total += tagged_jobs['total']
+        jobs = tagged_jobs['jobs'].map { |jid| qless_client.jobs[jid] }
+
+        h[client.name] = {
+          total: tagged_jobs['total'],
+          jobs: jobs
+        }
+
+        h
+      end
+
+      erb :tag, layout: true, locals: {
+        title: "Tag | #{params[:tag]}",
+        tag: params[:tag],
+        client_jobs: tagged,
+        total: total
+      }
     end
 
     post "/pause/?" do
