@@ -48,19 +48,5 @@ module Qless
       page.should have_content(jid1[0...9])
       page.should have_content(jid2[0...9])
     end
-
-    it 'should ignore queues that have no work', js: true do
-      # Add a queue
-      jid1 = q1.put(Qless::Job, {}, tags: ['foo'])
-      # Drain the queue
-      q1.pop.complete
-
-      visit '/'
-
-      require 'pry'
-      binding.pry
-
-      search = find("h1", :text => "/No Queues.*/")
-    end
   end
 end
