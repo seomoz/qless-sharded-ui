@@ -7,7 +7,7 @@
     <h1>Queues <small>And their job counts</small></h1>
   </div>
 
-  <% queues.each do |queue| %>
+  <% (@filter_empty ? non_empty_queues || queues).each do |queue| %>
   <div class="row">
     <div class="span4">
       <h3>

@@ -63,7 +63,7 @@ module Qless
       def prev_page_url
         page_url -1
       end
-      
+
       def current_page
         @current_page ||= begin
           Integer(params[:page])
@@ -87,6 +87,14 @@ module Qless
 
       def sluggify(text)
         text.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
+      end
+
+      def non_empty_queues
+        states = %w(running waiting throttled scheduled stalled depends recurring)
+        queues.reject do |queue|
+          total  = states.reduce(0) { |sum, state| sum += queue[state] }
+          total == 0
+        end
       end
 
       def queues
@@ -272,6 +280,7 @@ module Qless
     end
 
     get '/?' do
+      @filter_empty = true
       erb :overview, :layout => true, :locals => { :title => "Overview" }
     end
 
@@ -279,18 +288,18 @@ module Qless
       total = 0
       tagged = @clients.inject({}) do |h, client|
         qless_client = client.client
-        
+
         # Only get the first 5 found
         tagged_jobs = qless_client.jobs.tagged(params[:tag], 0, 5)
-        
+
         total += tagged_jobs['total']
         jobs = tagged_jobs['jobs'].map { |jid| qless_client.jobs[jid] }
-        
+
         h[client.name] = {
           total: tagged_jobs['total'],
           jobs: jobs
         }
-        
+
         h
       end
 
