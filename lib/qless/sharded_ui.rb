@@ -26,8 +26,11 @@ module Qless
     # I'm not sure what this option is -- I'll look it up later
     # set :static, true
 
-    def initialize(clients)
+    attr_reader :options
+
+    def initialize(clients, options)
       @clients = clients
+      @options = options
       super()
     end
 
@@ -89,14 +92,6 @@ module Qless
         text.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
       end
 
-      def non_empty_queues
-        states = %w(running waiting throttled scheduled stalled depends recurring)
-        queues.reject do |queue|
-          total  = states.reduce(0) { |sum, state| sum += queue[state] }
-          total == 0
-        end
-      end
-
       def queues
         # This will return an array with information about the various queues
         # we have as well as the number of jobs each worker has
@@ -151,6 +146,14 @@ module Qless
             if obj['paused'] then
               results[obj['name']][:counts][:paused] += 1
             end
+          end
+        end
+
+        if options[:ignore_empty_queues]
+          states = %w(running waiting throttled scheduled stalled depends recurring)
+          results= results.reject do |queue|
+            total  = states.reduce(0) { |sum, state| sum += queue[state] }
+            total == 0
           end
         end
         results.values.sort_by { |k| k[:name] }
